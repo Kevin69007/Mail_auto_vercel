@@ -2,11 +2,22 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import nodemailer from 'nodemailer';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Gestion des requêtes OPTIONS pour CORS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Méthode non autorisée' });
+    console.warn(`[JAK] Méthode ${req.method} non autorisée pour ${req.url}`);
+    return res.status(405).json({ 
+      error: 'Méthode non autorisée',
+      allowed: ['POST'],
+      received: req.method 
+    });
   }
 
   if (req.headers['x-api-secret'] !== process.env.API_SECRET_KEY) {
+    console.warn(`[JAK] Tentative d'accès non autorisée depuis ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
     return res.status(403).json({ error: 'Non autorisé' });
   }
 
@@ -39,24 +50,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   try {
+    console.log(`[JAK] Tentative d'envoi d'email à ${to}`);
     const info = await transporter.sendMail(mailOptions);
+    console.log(`[JAK] Email envoyé avec succès: ${info.messageId}`);
 
     // Notification interne
-    await transporter.sendMail({
-      from: `"Notifier - JAK" <${process.env.JAK_FROM_EMAIL}>`,
-      to: 'asathoud16@gmail.com',
-      subject: `[Notification - JAK] Email envoyé à ${to}`,
-      text: `Un email a été envoyé via le service JAK :\n\n` +
-            `Destinataire : ${to}\nSujet : ${subject}\nMessage ID : ${info.messageId}\n\n` +
-            `Contenu :\n${body || 'Aucun contenu.'}`,
-    });
+    try {
+      await transporter.sendMail({
+        from: `"Notifier - JAK" <${process.env.JAK_FROM_EMAIL}>`,
+        to: 'asathoud16@gmail.com',
+        subject: `[Notification - JAK] Email envoyé à ${to}`,
+        text: `Un email a été envoyé via le service JAK :\n\n` +
+              `Destinataire : ${to}\nSujet : ${subject}\nMessage ID : ${info.messageId}\n\n` +
+              `Contenu :\n${body || 'Aucun contenu.'}`,
+      });
+    } catch (notifError) {
+      console.error('[JAK] Erreur lors de l\'envoi de la notification:', notifError);
+      // On continue même si la notification échoue
+    }
 
     return res.status(200).json({ success: true, messageId: info.messageId });
   } catch (error) {
     if (error instanceof Error) {
       console.error('[JAK] Erreur SMTP:', error.message);
-      return res.status(500).json({ error: 'Erreur SMTP', details: error.message });
+      console.error('[JAK] Stack trace:', error.stack);
+      return res.status(500).json({ 
+        error: 'Erreur SMTP', 
+        details: error.message,
+        timestamp: new Date().toISOString()
+      });
     }
-    return res.status(500).json({ error: 'Erreur inconnue' });
+    console.error('[JAK] Erreur inconnue:', error);
+    return res.status(500).json({ 
+      error: 'Erreur inconnue',
+      timestamp: new Date().toISOString()
+    });
   }
 }
