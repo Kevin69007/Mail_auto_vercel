@@ -1,29 +1,26 @@
 {
-  "name": "mailer-nextjs-app",
+  "name": "mailer-express-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "dev": "node --watch server.js",
+    "start": "node server.js",
     "lint": "eslint"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
-    "next": "^15.5.9",
+    "express": "^4.21.2",
     "nodemailer": "^7.0.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "cors": "^2.8.5",
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@types/express": "^5.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.1",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/cors": "^2.8.17",
     "eslint": "^9",
-    "eslint-config-next": "15.5.2",
     "typescript": "^5"
   }
 }

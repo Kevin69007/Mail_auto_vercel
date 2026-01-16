@@ -1,30 +1,17 @@
-// 📁 pages/api/send-cuspide.ts
-
-import type { NextApiRequest, NextApiResponse } from 'next';
+import express from 'express';
 import nodemailer from 'nodemailer';
+import { authenticateApiKey } from '../middleware/auth.js';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Gestion des requêtes OPTIONS pour CORS
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+const router = express.Router();
 
-  if (req.method !== 'POST') {
-    console.warn(`[CUSPIDE] Méthode ${req.method} non autorisée pour ${req.url}`);
-    return res.status(405).json({ 
-      error: 'Méthode non autorisée',
-      allowed: ['POST'],
-      received: req.method 
-    });
-  }
-
-  if (req.headers['x-api-secret'] !== process.env.API_SECRET_KEY) {
-    console.warn(`[CUSPIDE] Tentative d'accès non autorisée depuis ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
-    return res.status(403).json({ error: 'Non autorisé' });
-  }
-
+/**
+ * POST /api/send-cuspide
+ * Envoie un email via le service CUSPIDE
+ */
+router.post('/', authenticateApiKey, async (req, res) => {
   const { to, from, subject, messageId, body } = req.body;
 
+  // Validation des champs requis
   if (!from || !subject || !messageId) {
     return res.status(400).json({
       error: 'Champs manquants',
@@ -32,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
+  // Configuration du transporteur SMTP
   const transporter = nodemailer.createTransport({
     host: process.env.CUSPIDE_SMTP_HOST,
     port: parseInt(process.env.CUSPIDE_SMTP_PORT || '465'),
@@ -76,16 +64,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (error instanceof Error) {
       console.error('[CUSPIDE] Erreur SMTP:', error.message);
       console.error('[CUSPIDE] Stack trace:', error.stack);
-      return res.status(500).json({ 
-        error: 'Erreur SMTP', 
+      return res.status(500).json({
+        error: 'Erreur SMTP',
         details: error.message,
         timestamp: new Date().toISOString()
       });
     }
     console.error('[CUSPIDE] Erreur inconnue:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Erreur inconnue',
       timestamp: new Date().toISOString()
     });
   }
-}
+});
+
+export default router;
+

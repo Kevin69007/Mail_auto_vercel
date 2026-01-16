@@ -10,16 +10,30 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends("eslint:recommended"),
   {
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+      },
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-console": "off",
+    },
     ignores: [
       "node_modules/**",
-      ".next/**",
-      "out/**",
       "build/**",
-      "next-env.d.ts",
+      "dist/**",
     ],
   },
 ];
 
 export default eslintConfig;
+
