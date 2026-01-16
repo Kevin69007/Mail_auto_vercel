@@ -66,8 +66,23 @@ app.use((err, req, res, next) => {
 });
 
 // Démarrer le serveur
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+// Railway/Vercel nécessite d'écouter sur 0.0.0.0, pas seulement localhost
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Serveur démarré sur ${HOST}:${PORT}`);
   console.log(`📧 Environnement: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Accessible sur: http://${HOST}:${PORT}`);
+});
+
+// Gestion des erreurs de démarrage
+process.on('uncaughtException', (error) => {
+  console.error('Erreur non capturée:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Promesse rejetée non gérée:', reason);
+  process.exit(1);
 });
 

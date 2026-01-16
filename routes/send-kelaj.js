@@ -5,6 +5,19 @@ import { authenticateApiKey } from '../middleware/auth.js';
 const router = express.Router();
 
 /**
+ * GET /api/send-kelaj
+ * Retourne une erreur car cette route nécessite POST
+ */
+router.get('/', (req, res) => {
+  return res.status(405).json({
+    error: 'Méthode non autorisée',
+    message: 'Cette route nécessite une requête POST',
+    allowed: ['POST'],
+    received: 'GET'
+  });
+});
+
+/**
  * POST /api/send-kelaj
  * Envoie un email via le service KELAJ
  */
