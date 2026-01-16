@@ -22,37 +22,48 @@ router.get('/', (req, res) => {
  * Envoie un email via le service RIDGE
  */
 router.post('/', authenticateApiKey, async (req, res) => {
-  const { to, from, subject, messageId, body } = req.body;
-
-  // Validation des champs requis
-  if (!from || !subject || !messageId) {
-    return res.status(400).json({
-      error: 'Champs manquants',
-      required: ['from', 'subject', 'messageId'],
-    });
-  }
-
-  // Configuration du transporteur SMTP
-  const transporter = nodemailer.createTransport({
-    host: process.env.RIDGE_SMTP_HOST,
-    port: parseInt(process.env.RIDGE_SMTP_PORT || '465'),
-    secure: process.env.RIDGE_SMTP_PORT === '465',
-    auth: {
-      user: process.env.RIDGE_SMTP_USER,
-      pass: process.env.RIDGE_SMTP_PASSWORD,
-    },
-  });
-
-  const mailOptions = {
-    from: `"${process.env.RIDGE_FROM_NAME}" <${process.env.RIDGE_FROM_EMAIL}>`,
-    to,
-    subject: `Re: ${subject}`,
-    text: body || 'Merci pour votre message. Nous vous répondrons bientôt.',
-    inReplyTo: messageId,
-    references: messageId,
-  };
-
   try {
+    // Vérifier que le body existe
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({
+        error: 'Body invalide',
+        message: 'Le body de la requête doit être un objet JSON',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const { to, from, subject, messageId, body } = req.body;
+
+    // Validation des champs requis
+    if (!from || !subject || !messageId) {
+      return res.status(400).json({
+        error: 'Champs manquants',
+        required: ['from', 'subject', 'messageId'],
+        received: Object.keys(req.body),
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Configuration du transporteur SMTP
+    const transporter = nodemailer.createTransport({
+      host: process.env.RIDGE_SMTP_HOST,
+      port: parseInt(process.env.RIDGE_SMTP_PORT || '465'),
+      secure: process.env.RIDGE_SMTP_PORT === '465',
+      auth: {
+        user: process.env.RIDGE_SMTP_USER,
+        pass: process.env.RIDGE_SMTP_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: `"${process.env.RIDGE_FROM_NAME}" <${process.env.RIDGE_FROM_EMAIL}>`,
+      to,
+      subject: `Re: ${subject}`,
+      text: body || 'Merci pour votre message. Nous vous répondrons bientôt.',
+      inReplyTo: messageId,
+      references: messageId,
+    };
+
     console.log(`[RIDGE] Tentative d'envoi d'email à ${to}`);
     const info = await transporter.sendMail(mailOptions);
     console.log(`[RIDGE] Email envoyé avec succès: ${info.messageId}`);
@@ -75,8 +86,18 @@ router.post('/', authenticateApiKey, async (req, res) => {
     return res.status(200).json({ success: true, messageId: info.messageId });
   } catch (error) {
     if (error instanceof Error) {
-      console.error('[RIDGE] Erreur SMTP:', error.message);
+      console.error('[RIDGE] Erreur:', error.message);
       console.error('[RIDGE] Stack trace:', error.stack);
+      
+      // Vérifier si c'est une erreur SMTP
+      if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+        return res.status(500).json({
+          error: 'Erreur de connexion SMTP',
+          details: error.message,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       return res.status(500).json({
         error: 'Erreur SMTP',
         details: error.message,
