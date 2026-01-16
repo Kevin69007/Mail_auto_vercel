@@ -59,7 +59,7 @@ router.post('/', authenticateApiKey, async (req, res) => {
       from: `"${process.env.RIDGE_FROM_NAME}" <${process.env.RIDGE_FROM_EMAIL}>`,
       to,
       subject: `Re: ${subject}`,
-      text: body || 'Merci pour votre message. Nous vous répondrons bientôt.',
+      text: body || 'Merci pour votre message. Nous vous répondrons bientôt',
       inReplyTo: messageId,
       references: messageId,
     };
