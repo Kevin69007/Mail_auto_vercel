@@ -1,0 +1,518 @@
+{
+	"info": {
+		"_postman_id": "mail-auto-api-collection",
+		"name": "Mail Auto API",
+		"description": "Collection de tests pour l'API Mail Auto Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "GET Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"ok\");",
+									"});",
+									"",
+									"pm.test(\"Response has uptime\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.uptime).to.be.a('number');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Vérifie que le serveur est opérationnel"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests de santé du serveur"
+		},
+		{
+			"name": "Send RIDGE",
+			"item": [
+				{
+					"name": "POST Send Email RIDGE - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response has messageId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageId).to.be.a('string');",
+									"    pm.expect(jsonData.messageId).to.not.be.empty;",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "{{api_secret_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\",\n    \"from\": \"sender@example.com\",\n    \"subject\": \"Test Email RIDGE\",\n    \"messageId\": \"<test-message-id-123@example.com>\",\n    \"body\": \"Ceci est un email de test pour le service RIDGE.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-ridge",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-ridge"
+							]
+						},
+						"description": "Envoie un email via le service RIDGE"
+					},
+					"response": []
+				},
+				{
+					"name": "POST Send Email RIDGE - Missing Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response has error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.eql(\"Champs manquants\");",
+									"});",
+									"",
+									"pm.test(\"Response has required fields list\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.required).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "{{api_secret_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-ridge",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-ridge"
+							]
+						},
+						"description": "Test de validation des champs requis"
+					},
+					"response": []
+				},
+				{
+					"name": "POST Send Email RIDGE - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response has error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.eql(\"Non autorisé\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "wrong-key",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\",\n    \"from\": \"sender@example.com\",\n    \"subject\": \"Test Email\",\n    \"messageId\": \"<test@example.com>\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-ridge",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-ridge"
+							]
+						},
+						"description": "Test d'authentification avec une clé invalide"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests pour l'endpoint RIDGE"
+		},
+		{
+			"name": "Send JAK",
+			"item": [
+				{
+					"name": "POST Send Email JAK - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response has messageId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageId).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "{{api_secret_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\",\n    \"from\": \"sender@example.com\",\n    \"subject\": \"Test Email JAK\",\n    \"messageId\": \"<test-message-id-456@example.com>\",\n    \"body\": \"Ceci est un email de test pour le service JAK.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-jak",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-jak"
+							]
+						},
+						"description": "Envoie un email via le service JAK"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests pour l'endpoint JAK"
+		},
+		{
+			"name": "Send CUSPIDE",
+			"item": [
+				{
+					"name": "POST Send Email CUSPIDE - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response has messageId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageId).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "{{api_secret_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\",\n    \"from\": \"sender@example.com\",\n    \"subject\": \"Test Email CUSPIDE\",\n    \"messageId\": \"<test-message-id-789@example.com>\",\n    \"body\": \"Ceci est un email de test pour le service CUSPIDE.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-cuspide",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-cuspide"
+							]
+						},
+						"description": "Envoie un email via le service CUSPIDE"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests pour l'endpoint CUSPIDE"
+		},
+		{
+			"name": "Send KELAJ",
+			"item": [
+				{
+					"name": "POST Send Email KELAJ - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response has messageId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageId).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-secret",
+								"value": "{{api_secret_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"test@example.com\",\n    \"from\": \"sender@example.com\",\n    \"subject\": \"Test Email KELAJ\",\n    \"messageId\": \"<test-message-id-012@example.com>\",\n    \"body\": \"Ceci est un email de test pour le service KELAJ.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/send-kelaj",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"send-kelaj"
+							]
+						},
+						"description": "Envoie un email via le service KELAJ"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests pour l'endpoint KELAJ"
+		},
+		{
+			"name": "Root Endpoint",
+			"item": [
+				{
+					"name": "GET Root",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"API Mailer Service\");",
+									"});",
+									"",
+									"pm.test(\"Response has endpoints list\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.endpoints).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Endpoint racine qui liste les endpoints disponibles"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests pour l'endpoint racine"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "api_secret_key",
+			"value": "votre_cle_secrete_ici",
+			"type": "string"
+		}
+	]
+}
+
