@@ -733,7 +733,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://mailautovercel-production.up.railway.app",
+			"value": "https://mail-auto-vercel.vercel.app",
 			"type": "string"
 		},
 		{

@@ -19,6 +19,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
+  // Normaliser le champ 'to' : convertir un tableau en string si nécessaire
+  let toEmail: string;
+  if (Array.isArray(to)) {
+    toEmail = to.join(', ');
+  } else if (typeof to === 'string') {
+    toEmail = to;
+  } else {
+    return res.status(400).json({
+      error: 'Champ invalide',
+      message: 'Le champ "to" doit être une string ou un tableau de strings',
+    });
+  }
+
+  // Normaliser les autres champs pour s'assurer qu'ils sont des strings
+  const fromEmail = String(from);
+  const subjectText = String(subject);
+  const messageIdText = String(messageId);
+  const bodyText = body ? String(body) : undefined;
+
   const transporter = nodemailer.createTransport({
     host: process.env.JAK_SMTP_HOST,
     port: parseInt(process.env.JAK_SMTP_PORT || '465'),
@@ -31,11 +50,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const mailOptions = {
     from: `"${process.env.JAK_FROM_NAME}" <${process.env.JAK_FROM_EMAIL}>`,
-    to,
-    subject: `Re: ${subject}`,
-    text: body || 'Merci pour votre message. Nous vous répondrons bientôt.',
-    inReplyTo: messageId,
-    references: messageId,
+    to: toEmail,
+    subject: `Re: ${subjectText}`,
+    text: bodyText || 'Merci pour votre message. Nous vous répondrons bientôt.',
+    inReplyTo: messageIdText,
+    references: messageIdText,
   };
 
   try {
@@ -45,10 +64,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await transporter.sendMail({
       from: `"Notifier - JAK" <${process.env.JAK_FROM_EMAIL}>`,
       to: 'asathoud16@gmail.com',
-      subject: `[Notification - JAK] Email envoyé à ${to}`,
+      subject: `[Notification - JAK] Email envoyé à ${toEmail}`,
       text: `Un email a été envoyé via le service JAK :\n\n` +
-            `Destinataire : ${to}\nSujet : ${subject}\nMessage ID : ${info.messageId}\n\n` +
-            `Contenu :\n${body || 'Aucun contenu.'}`,
+            `Destinataire : ${toEmail}\nSujet : ${subjectText}\nMessage ID : ${info.messageId}\n\n` +
+            `Contenu :\n${bodyText || 'Aucun contenu.'}`,
     });
 
     return res.status(200).json({ success: true, messageId: info.messageId });

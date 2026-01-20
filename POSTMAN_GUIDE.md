@@ -15,7 +15,7 @@ La collection contient deux variables pré-configurées :
 
 | Variable | Valeur par défaut | Description |
 |----------|-------------------|-------------|
-| `base_url` | `https://mailautovercel-production.up.railway.app` | URL de base de l'API |
+| `base_url` | `https://mail-auto-vercel.vercel.app` | URL de base de l'API |
 | `api_secret_key` | `A7z9!Kp42*WxLvPc6QyB1jR8%ZnD3y1d` | Clé API secrète |
 
 ### Modifier les variables
