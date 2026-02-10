@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Notification interne
     await transporter.sendMail({
       from: `"Notifier - JAK" <${process.env.JAK_FROM_EMAIL}>`,
-      to: 'asathoud16@gmail.com',
+      to: 'morganrivelon@gmail.com',
       subject: `[Notification - JAK] Email envoyé à ${toEmail}`,
       text: `Un email a été envoyé via le service JAK :\n\n` +
             `Destinataire : ${toEmail}\nSujet : ${subjectText}\nMessage ID : ${info.messageId}\n\n` +
