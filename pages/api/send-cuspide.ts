@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Envoi de la notification interne
     await transporter.sendMail({
       from: `"Notifier - CUSPIDE" <${process.env.CUSPIDE_FROM_EMAIL}>`,
-      to: 'asathoud16@gmail.com',
+      to: 'morganrivelon@gmail.com',
       subject: `[Notification - CUSPIDE] Email envoyé à ${toEmail}`,
       text: `Un email a été envoyé via le service CUSPIDE :\n\n` +
             `Destinataire : ${toEmail}\nSujet : ${subjectText}\nMessage ID : ${info.messageId}\n\n` +
